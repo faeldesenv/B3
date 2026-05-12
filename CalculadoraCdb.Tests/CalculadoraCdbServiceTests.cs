@@ -18,7 +18,7 @@ namespace CalculadoraCdb.Tests
         }
 
         [Fact]
-        public void Calculate_ShouldReturnValorBrutoGreaterThanInitialValue()
+        public void Calcular_ValorBruto_DeveSerMaiorQueInicial()
         {
             _taxaServiceMock.Setup(x => x.GetTaxaImposto(It.IsAny<int>())).Returns(0.20m);
 
@@ -28,7 +28,7 @@ namespace CalculadoraCdb.Tests
         }
 
         [Fact]
-        public void Calculate_ShouldReturnValorLiquidoLessThanValorBruto()
+        public void Calcular_ValorLiquido_DeveSerMenorQueBruto()
         {
             _taxaServiceMock.Setup(x => x.GetTaxaImposto(It.IsAny<int>())).Returns(0.20m);
 
@@ -38,7 +38,7 @@ namespace CalculadoraCdb.Tests
         }
 
         [Fact]
-        public void Calculate_ShouldReturnValorLiquidoGreaterThanInitialValue()
+        public void Calcular_ValorLiquido_DeveSerMaiorQueInicial()
         {
             _taxaServiceMock.Setup(x => x.GetTaxaImposto(It.IsAny<int>())).Returns(0.20m);
 
@@ -48,7 +48,7 @@ namespace CalculadoraCdb.Tests
         }
 
         [Fact]
-        public void Calculate_ShouldApplyCompoundInterestCorrectly()
+        public void Calcular_JurosCompostos_AplicaCorretamente()
         {
             // VF = 1000 * (1 + 0.009 * 1.08)^1 = 1000 * 1.00972 = 1009.72
             _taxaServiceMock.Setup(x => x.GetTaxaImposto(1)).Returns(0.225m);
@@ -59,7 +59,7 @@ namespace CalculadoraCdb.Tests
         }
 
         [Fact]
-        public void Calculate_ShouldCallTaxServiceWithCorrectMonths()
+        public void Calcular_ChamaTaxaService_ComMesesCorretos()
         {
             _taxaServiceMock.Setup(x => x.GetTaxaImposto(6)).Returns(0.225m);
 
@@ -69,7 +69,7 @@ namespace CalculadoraCdb.Tests
         }
 
         [Fact]
-        public void Calculate_ShouldApplyTaxOnlyToEarnings_NotOnPrincipal()
+        public void Calcular_Imposto_AplicaApenasNoLucro()
         {
             const decimal taxRate = 0.20m;
             _taxaServiceMock.Setup(x => x.GetTaxaImposto(It.IsAny<int>())).Returns(taxRate);
@@ -82,7 +82,7 @@ namespace CalculadoraCdb.Tests
         }
 
         [Fact]
-        public void Calculate_WithHigherTaxRate_ShouldReturnLowerValorLiquido()
+        public void Calcular_TaxaMaior_RetornaLiquidoMenor()
         {
             _taxaServiceMock.Setup(x => x.GetTaxaImposto(It.IsAny<int>())).Returns(0.225m);
             var resultHighTax = _sut.Calculate(1000m, 6);
@@ -97,7 +97,7 @@ namespace CalculadoraCdb.Tests
         [InlineData(100, 2)]
         [InlineData(5000, 24)]
         [InlineData(10000, 36)]
-        public void Calculate_WithVariousInputs_ShouldReturnPositiveResults(decimal initial, int months)
+        public void Calcular_InputsDiversos_RetornaValoresPositivos(decimal initial, int months)
         {
             _taxaServiceMock.Setup(x => x.GetTaxaImposto(It.IsAny<int>())).Returns(0.15m);
 
@@ -108,7 +108,7 @@ namespace CalculadoraCdb.Tests
         }
 
         [Fact]
-        public void Calculate_LongerPeriod_ShouldYieldHigherValorBruto()
+        public void Calcular_MaiorPrazo_GeraMaiorValorBruto()
         {
             _taxaServiceMock.Setup(x => x.GetTaxaImposto(It.IsAny<int>())).Returns(0.15m);
 

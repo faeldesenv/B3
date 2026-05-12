@@ -24,7 +24,7 @@ namespace CalculadoraCdb.Tests
         }
 
         [Fact]
-        public void Calculate_WithValidRequest_ShouldReturnOkWithResult()
+        public void Calcular_RequestValido_RetornaOk()
         {
             var request = new CalculaCdbRequest { ValorInvestido = 1000m, Meses = 12 };
             var expected = new CalculaCdbResponse { ValorBruto = 1115.68m, ValorLiquido = 1092.54m };
@@ -37,7 +37,7 @@ namespace CalculadoraCdb.Tests
         }
 
         [Fact]
-        public void Calculate_WithZeroValorInvestido_ShouldReturnBadRequest()
+        public void Calcular_ValorZero_RetornaBadRequest()
         {
             var request = new CalculaCdbRequest { ValorInvestido = 0m, Meses = 12 };
 
@@ -47,7 +47,7 @@ namespace CalculadoraCdb.Tests
         }
 
         [Fact]
-        public void Calculate_WithNegativeValorInvestido_ShouldReturnBadRequest()
+        public void Calcular_ValorNegativo_RetornaBadRequest()
         {
             var request = new CalculaCdbRequest { ValorInvestido = -500m, Meses = 12 };
 
@@ -57,7 +57,7 @@ namespace CalculadoraCdb.Tests
         }
 
         [Fact]
-        public void Calculate_WithMesesEqualTo1_ShouldReturnBadRequest()
+        public void Calcular_UmMes_RetornaBadRequest()
         {
             var request = new CalculaCdbRequest { ValorInvestido = 1000m, Meses = 1 };
 
@@ -67,7 +67,7 @@ namespace CalculadoraCdb.Tests
         }
 
         [Fact]
-        public void Calculate_WithMesesLessThan1_ShouldReturnBadRequest()
+        public void Calcular_MesesInvalidos_RetornaBadRequest()
         {
             var request = new CalculaCdbRequest { ValorInvestido = 1000m, Meses = 0 };
 
@@ -77,7 +77,7 @@ namespace CalculadoraCdb.Tests
         }
 
         [Fact]
-        public void Calculate_WithValidRequest_ShouldCallServiceOnce()
+        public void Calcular_RequestValido_ChamaServico()
         {
             var request = new CalculaCdbRequest { ValorInvestido = 2000m, Meses = 6 };
             _calculadoraCdbServiceMock.Setup(x => x.Calculate(It.IsAny<decimal>(), It.IsAny<int>()))
@@ -89,7 +89,7 @@ namespace CalculadoraCdb.Tests
         }
 
         [Fact]
-        public void Calculate_WithInvalidRequest_ShouldNotCallService()
+        public void Calcular_RequestInvalido_NaoChamaService()
         {
             var request = new CalculaCdbRequest { ValorInvestido = -100m, Meses = 12 };
 
@@ -99,7 +99,7 @@ namespace CalculadoraCdb.Tests
         }
 
         [Fact]
-        public void Calculate_WithMesesEqualTo2_ShouldReturnOk()
+        public void Calcular_DoisMeses_RetornaOk()
         {
             var request = new CalculaCdbRequest { ValorInvestido = 1000m, Meses = 2 };
             _calculadoraCdbServiceMock.Setup(x => x.Calculate(1000m, 2))
@@ -111,7 +111,7 @@ namespace CalculadoraCdb.Tests
         }
 
         [Fact]
-        public void Calculate_WithNegativeMeses_ShouldReturnBadRequest()
+        public void Calcular_MesesNegativos_RetornaBadRequest()
         {
             var request = new CalculaCdbRequest { ValorInvestido = 1000m, Meses = -5 };
 

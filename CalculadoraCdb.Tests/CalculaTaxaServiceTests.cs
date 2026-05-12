@@ -19,7 +19,7 @@ namespace CalculadoraCdb.Tests
         [InlineData(24, 0.175)]  // Caso: Limite exato 24
         [InlineData(25, 0.15)]   // Caso: Acima de 24 (Default)
         [InlineData(-1, 0.225)]  // Caso: Valor negativo (cai no primeiro braço <= 6)
-        public void GetTaxaImposto_CenariosDiversos_RetornaTaxaCorreta(int meses, decimal taxaEsperada)
+        public void ObterTaxa_CenariosDiversos_RetornaCorretamente(int meses, decimal taxaEsperada)
         {
             // Act
             var resultado = _sut.GetTaxaImposto(meses);
