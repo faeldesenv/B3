@@ -4,11 +4,9 @@ import { Observable } from 'rxjs';
 import { CdbCalculationRequest, CdbCalculationResult } from '../models/cdb.model';
 import { environment } from '../../environments/environment';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root'})
 export class CdbService {
-  private readonly apiUrl = `${environment.apiUrl}/api/cdb/calculate`;
+  private readonly apiUrl =`${environment.apiUrl}/api/cdb/calculate`;
 
   constructor(private readonly http: HttpClient) {}
 

@@ -27,8 +27,8 @@ describe('CdbService', () => {
   });
 
   it('should POST to correct URL with request body', () => {
-    const request: CdbCalculationRequest = { initialValue: 1000, months: 12 };
-    const mockResult: CdbCalculationResult = { grossValue: 1115.68, netValue: 1092.54 };
+    const request: CdbCalculationRequest = { valorInvestido: 1000, meses: 12 };
+    const mockResult: CdbCalculationResult = { valorBruto: 1115.68, valorLiquido: 1092.54 };
 
     service.calculate(request).subscribe(result => {
       expect(result).toEqual(mockResult);
@@ -41,8 +41,8 @@ describe('CdbService', () => {
   });
 
   it('should return observable with calculation result', () => {
-    const request: CdbCalculationRequest = { initialValue: 5000, months: 24 };
-    const mockResult: CdbCalculationResult = { grossValue: 6234.56, netValue: 5990.12 };
+    const request: CdbCalculationRequest = { valorInvestido: 5000, meses: 24 };
+    const mockResult: CdbCalculationResult = { valorBruto: 6234.56, valorLiquido: 5990.12 };
 
     let actualResult: CdbCalculationResult | undefined;
     service.calculate(request).subscribe(result => {

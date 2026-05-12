@@ -1,9 +1,9 @@
 export interface CdbCalculationRequest {
-  initialValue: number;
-  months: number;
+  valorInvestido: number;
+  meses: number;
 }
 
 export interface CdbCalculationResult {
-  grossValue: number;
-  netValue: number;
+  valorBruto: number;
+  valorLiquido: number;
 }

@@ -1,122 +1,109 @@
-<div class="calculator-wrapper">
-  <header class="calculator-header">
-    <div class="logo-mark">CDB</div>
-    <h1>Simulador de Investimento</h1>
-    <p class="subtitle">Calcule o rendimento bruto e líquido do seu CDB</p>
-  </header>
+<div class="page">
 
-  <main class="calculator-card">
-    <form [formGroup]="calculationForm" (ngSubmit)="onSubmit()" novalidate>
-      <div class="field-group">
-        <label for="initialValue" class="field-label">
-          <span class="label-text">Valor Inicial</span>
-          <span class="label-hint">R$</span>
-        </label>
-        <input
-          id="initialValue"
-          type="number"
-          formControlName="initialValue"
-          class="field-input"
-          [class.field-input--error]="initialValueControl?.invalid && initialValueControl?.touched"
-          placeholder="Ex: 1000,00"
-          step="0.01"
-          min="0.01"
-        />
-        <span
-          class="field-error"
-          *ngIf="initialValueControl?.invalid && initialValueControl?.touched"
-        >
-          <ng-container *ngIf="initialValueControl?.errors?.['required']">
-            Informe o valor inicial.
-          </ng-container>
-          <ng-container *ngIf="initialValueControl?.errors?.['min']">
-            O valor deve ser positivo.
-          </ng-container>
-        </span>
+  <!-- Logo -->
+  <div class="logo">
+    <span>[B]<sup>3</sup></span>
+  </div>
+
+  <h1 class="title">Simulador de Investimento</h1>
+  <p class="subtitle">Calcule o rendimento bruto e líquido do seu CDB</p>
+
+  <div class="card">
+    <div class="field">
+      <div class="field-header">
+        <label class="field-label" for="initialValue">Valor Investimento</label>
+        <span class="field-unit">R$</span>
       </div>
+      <input
+        id="initialValue"
+        type="text"
+        inputmode="numeric"
+        class="field-input"
+        [class.input-error]="initialValueCtrl?.invalid && initialValueCtrl?.touched"
+        [value]="displayValue"
+        placeholder="Ex: 0,00"
+        autocomplete="off"
+        (keydown)="onValueKeydown($event)"
+        (input)="onValueInput($event)"
+      />
+      <span class="error-msg"
+            *ngIf="initialValueCtrl?.invalid && initialValueCtrl?.touched">
+        <ng-container *ngIf="initialValueCtrl?.errors?.['required']">O valor é obrigatório.</ng-container>
+        <ng-container *ngIf="initialValueCtrl?.errors?.['min']">Informe um valor maior que zero.</ng-container>
+      </span>
+    </div>
 
-      <div class="field-group">
-        <label for="months" class="field-label">
-          <span class="label-text">Prazo</span>
-          <span class="label-hint">meses</span>
-        </label>
+    <div class="field">
+      <div class="field-header">
+        <label class="field-label" for="months">Prazo</label>
+        <span class="field-unit">meses</span>
+      </div>
+      <div class="spinner-wrap"
+           [class.input-error]="monthsCtrl?.invalid && monthsCtrl?.touched">
         <input
           id="months"
           type="number"
-          formControlName="months"
-          class="field-input"
-          [class.field-input--error]="monthsControl?.invalid && monthsControl?.touched"
+          class="field-input spinner-input"
+          [formControl]="$any(monthsCtrl)"
           placeholder="Ex: 12"
-          step="1"
           min="2"
+          (keydown)="onMonthsKeydown($event)"
         />
-        <span
-          class="field-error"
-          *ngIf="monthsControl?.invalid && monthsControl?.touched"
-        >
-          <ng-container *ngIf="monthsControl?.errors?.['required']">
-            Informe o prazo em meses.
-          </ng-container>
-          <ng-container *ngIf="monthsControl?.errors?.['min']">
-            O prazo deve ser maior que 1 mês.
-          </ng-container>
-          <ng-container *ngIf="monthsControl?.errors?.['pattern']">
-            Informe um número inteiro de meses.
-          </ng-container>
-        </span>
+        <div class="spinner-btns">
+          <button type="button" class="spin-btn spin-up"
+                  (click)="increment()" tabindex="-1" aria-label="Aumentar">▲</button>
+          <button type="button" class="spin-btn spin-down"
+                  (click)="decrement()" tabindex="-1" aria-label="Diminuir">▼</button>
+        </div>
       </div>
-
-      <div class="actions">
-        <button
-          type="submit"
-          class="btn btn--primary"
-          [disabled]="isLoading"
-        >
-          <span class="spinner" *ngIf="isLoading"></span>
-          {{ isLoading ? 'Calculando...' : 'Calcular Rendimento' }}
-        </button>
-        <button
-          type="button"
-          class="btn btn--ghost"
-          (click)="onReset()"
-        >
-          Limpar
-        </button>
-      </div>
-    </form>
-
-    <div class="alert alert--error" role="alert" *ngIf="errorMessage">
-      <span class="alert-icon">⚠</span>
-      {{ errorMessage }}
+      <span class="error-msg"
+            *ngIf="monthsCtrl?.invalid && monthsCtrl?.touched">
+        <ng-container *ngIf="monthsCtrl?.errors?.['required']">O prazo é obrigatório.</ng-container>
+        <ng-container *ngIf="monthsCtrl?.errors?.['min']">O prazo deve ser maior que 1 mês.</ng-container>
+      </span>
     </div>
 
-    <section class="result-section" aria-live="polite" *ngIf="result">
-      <div class="result-divider">
-        <span>Resultado da Simulação</span>
-      </div>
-      <div class="result-grid">
-        <div class="result-card result-card--gross">
-          <div class="result-label">Valor Bruto</div>
-          <div class="result-value">
-            {{ result.grossValue | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}
-          </div>
-          <div class="result-note">Antes do imposto de renda</div>
-        </div>
-        <div class="result-card result-card--net">
-          <div class="result-label">Valor Líquido</div>
-          <div class="result-value">
-            {{ result.netValue | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}
-          </div>
-          <div class="result-note">Após dedução do IR</div>
-        </div>
-      </div>
-      <p class="result-disclaimer">
-        Simulação baseada em CDI = 0,9% a.m. e TB = 108%
-      </p>
-    </section>
-  </main>
+    <div class="api-error" *ngIf="errorMessage">
+      ⚠ {{ errorMessage }}
+    </div>
 
-  <footer class="calculator-footer">
-    <p>Taxas de IR: até 6m 22,5% · até 12m 20% · até 24m 17,5% · acima de 24m 15%</p>
-  </footer>
+    <div class="actions">
+      <button type="button" class="btn btn-primary"
+              [disabled]="isLoading" (click)="onSubmit()">
+        <span *ngIf="!isLoading">Calcular Rendimento</span>
+        <span *ngIf="isLoading" class="dots">
+          <span></span><span></span><span></span>
+        </span>
+      </button>
+      <button type="button" class="btn btn-secondary" (click)="onReset()">
+        Limpar
+      </button>
+    </div>
+  
+    <div class="result-section" *ngIf="result">
+      <div class="result-divider"></div>
+      <div class="result-row">
+        <div class="result-block">
+          <span class="result-label">Valor Bruto</span>
+          <span class="result-value">
+            {{ result.valorBruto | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}
+          </span>
+          <span class="result-sub">antes do IR</span>
+        </div>
+        <div class="result-block result-net">
+          <span class="result-label">Valor Líquido</span>
+          <span class="result-value net-value">
+            {{ result.valorLiquido | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}
+          </span>
+          <span class="result-sub">alíquota {{ getTaxLabel() }}</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  
+  <p class="tax-footer">
+    Taxas de IR: até 6m 22,5% &bull; até 12m 20% &bull; até 24m 17,5% &bull; acima de 24m 15%
+  </p>
+
 </div>

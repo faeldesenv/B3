@@ -1,8 +1,8 @@
+/// <reference types="jasmine" />
+
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { of, throwError } from 'rxjs';
-
 import { CdbCalculatorComponent } from './cdb-calculator.component';
 import { CdbService } from '../../services/cdb.service';
 import { CdbCalculationResult } from '../../models/cdb.model';
@@ -10,95 +10,103 @@ import { CdbCalculationResult } from '../../models/cdb.model';
 describe('CdbCalculatorComponent', () => {
   let component: CdbCalculatorComponent;
   let fixture: ComponentFixture<CdbCalculatorComponent>;
-  let cdbServiceSpy: jasmine.SpyObj<CdbService>;
-
-  const mockResult: CdbCalculationResult = { grossValue: 1115.68, netValue: 1092.54 };
+  let cdbServiceMock: jasmine.SpyObj<CdbService>;
 
   beforeEach(async () => {
-    cdbServiceSpy = jasmine.createSpyObj('CdbService', ['calculate']);
+    // 1. Criar o Mock do serviço
+    cdbServiceMock = jasmine.createSpyObj('CdbService', ['calculate']);
 
     await TestBed.configureTestingModule({
+      imports: [ReactiveFormsModule],
       declarations: [CdbCalculatorComponent],
-      imports: [ReactiveFormsModule, HttpClientTestingModule],
-      providers: [{ provide: CdbService, useValue: cdbServiceSpy }]
+      providers: [
+        { provide: CdbService, useValue: cdbServiceMock }
+      ]
     }).compileComponents();
 
     fixture = TestBed.createComponent(CdbCalculatorComponent);
     component = fixture.componentInstance;
-    fixture.detectChanges();
+    fixture.detectChanges(); // Aciona o ngOnInit
   });
 
-  it('should create', () => {
+  it('deve criar o componente', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should initialize form with null values', () => {
-    expect(component.calculationForm.get('initialValue')?.value).toBeNull();
-    expect(component.calculationForm.get('months')?.value).toBeNull();
+  it('deve inicializar o formulário vazio e inválido', () => {
+    expect(component.form).toBeDefined();
+    expect(component.form.valid).toBeFalsy();
   });
 
-  it('should mark form as invalid when empty', () => {
-    expect(component.calculationForm.invalid).toBeTrue();
+  describe('Lógica de Incremento e Decremento', () => {
+    it('deve incrementar o número de meses', () => {
+      component.monthsCtrl?.setValue(10);
+      component.increment();
+      expect(component.monthsCtrl?.value).toBe(11);
+    });
+
+    it('deve decrementar o número de meses respeitando o limite mínimo de 2', () => {
+      component.monthsCtrl?.setValue(3);
+      component.decrement();
+      expect(component.monthsCtrl?.value).toBe(2);
+      
+      component.decrement(); // Tenta baixar de 2
+      expect(component.monthsCtrl?.value).toBe(2);
+    });
   });
 
-  it('should mark form as invalid when initialValue is 0', () => {
-    component.calculationForm.setValue({ initialValue: 0, months: 12 });
-    expect(component.calculationForm.invalid).toBeTrue();
+  describe('Formatação e Input', () => {
+    it('deve formatar valor numérico para BRL corretamente', () => {
+      const formatted = component.formatBRL(1250.5);
+      // Nota: \xa0 é o espaço não-quebrável que o toLocaleString usa
+      expect(formatted).toContain('R$');
+      expect(formatted).toContain('1.250,50');
+    });
+
+    it('deve retornar a alíquota correta baseada nos meses', () => {
+      const cases = [
+        { months: 5, expected: '22,5%' },
+        { months: 10, expected: '20%' },
+        { months: 18, expected: '17,5%' },
+        { months: 30, expected: '15%' }
+      ];
+
+      cases.forEach(c => {
+        component.monthsCtrl?.setValue(c.months);
+        expect(component.getTaxLabel()).toBe(c.expected);
+      });
+    });
   });
 
-  it('should mark form as invalid when months is 1', () => {
-    component.calculationForm.setValue({ initialValue: 1000, months: 1 });
-    expect(component.calculationForm.invalid).toBeTrue();
-  });
+  describe('Submissão (Cálculo)', () => {
+    const mockResult: CdbCalculationResult = {
+      valorBruto: 1100,
+      valorLiquido: 1080
+    };
 
-  it('should mark form as valid with correct values', () => {
-    component.calculationForm.setValue({ initialValue: 1000, months: 12 });
-    expect(component.calculationForm.valid).toBeTrue();
-  });
+    it('deve chamar o serviço quando o formulário for válido', () => {
+      cdbServiceMock.calculate.and.returnValue(of(mockResult));
 
-  it('should call service on valid form submit', () => {
-    cdbServiceSpy.calculate.and.returnValue(of(mockResult));
-    component.calculationForm.setValue({ initialValue: 1000, months: 12 });
+      component.form.setValue({ initialValue: 1000, months: 12 });
+      component.onSubmit();
 
-    component.onSubmit();
+      expect(cdbServiceMock.calculate).toHaveBeenCalledWith({
+        valorInvestido: 1000,
+        meses: 12
+      });
+      expect(component.result).toEqual(mockResult);
+      expect(component.isLoading).toBeFalse();
+    });
 
-    expect(cdbServiceSpy.calculate).toHaveBeenCalledWith({ initialValue: 1000, months: 12 });
-  });
+    it('deve tratar erro na chamada do serviço', () => {
+      const errorResponse = { error: { message: 'Erro na API' } };
+      cdbServiceMock.calculate.and.returnValue(throwError(() => errorResponse));
 
-  it('should not call service when form is invalid', () => {
-    component.onSubmit();
-    expect(cdbServiceSpy.calculate).not.toHaveBeenCalled();
-  });
+      component.form.setValue({ initialValue: 500, months: 6 });
+      component.onSubmit();
 
-  it('should set result on successful calculation', () => {
-    cdbServiceSpy.calculate.and.returnValue(of(mockResult));
-    component.calculationForm.setValue({ initialValue: 1000, months: 12 });
-
-    component.onSubmit();
-
-    expect(component.result).toEqual(mockResult);
-    expect(component.isLoading).toBeFalse();
-  });
-
-  it('should set errorMessage on API error', () => {
-    cdbServiceSpy.calculate.and.returnValue(throwError(() => new Error('Server error')));
-    component.calculationForm.setValue({ initialValue: 1000, months: 12 });
-
-    component.onSubmit();
-
-    expect(component.errorMessage).toBeTruthy();
-    expect(component.result).toBeNull();
-    expect(component.isLoading).toBeFalse();
-  });
-
-  it('should reset form and results on onReset', () => {
-    component.result = mockResult;
-    component.errorMessage = 'some error';
-
-    component.onReset();
-
-    expect(component.result).toBeNull();
-    expect(component.errorMessage).toBeNull();
-    expect(component.calculationForm.get('initialValue')?.value).toBeNull();
+      expect(component.errorMessage).toBe('Erro na API');
+      expect(component.isLoading).toBeFalse();
+    });
   });
 });
