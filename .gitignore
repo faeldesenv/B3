@@ -1,0 +1,19 @@
+# Dependências de pacotes
+node_modules/
+.npm/
+
+# Compilação e Build (.NET)
+bin/
+obj/
+publish/
+
+# IDEs e Editores
+.vs/
+.vscode/
+*.user
+*.suo
+
+# Arquivos de log e SO
+*.log
+.DS_Store
+Thumbs.db

@@ -1,0 +1,14 @@
+{
+  "profiles": {
+    "CalculadoraCdb.Api": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": true,
+      "launchUrl": "swagger",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:52449;http://localhost:52450"
+    }
+  }
+}
