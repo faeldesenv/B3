@@ -1,20 +1,22 @@
-﻿using CalculadoraCdb.Api.Interface;
 using CalculadoraCdb.Api.Service;
+using CalculadoraCdb.Domain.Interfaces;
 using FluentAssertions;
 using Moq;
 using Xunit;
-
 
 namespace CalculadoraCdb.Tests
 {
     public sealed class CalculadoraCdbServiceTests
     {
         private readonly Mock<ICalculaTaxaService> _taxaServiceMock = new();
+        private readonly Mock<IParametrosCdb> _parametrosCdbMock = new();
         private readonly CalculadoraCdbService _sut;
 
         public CalculadoraCdbServiceTests()
         {
-            _sut = new CalculadoraCdbService(_taxaServiceMock.Object);
+            _parametrosCdbMock.Setup(x => x.Cdi).Returns(0.009m);
+            _parametrosCdbMock.Setup(x => x.Tb).Returns(1.08m);
+            _sut = new CalculadoraCdbService(_taxaServiceMock.Object, _parametrosCdbMock.Object);
         }
 
         [Fact]
@@ -50,12 +52,12 @@ namespace CalculadoraCdb.Tests
         [Fact]
         public void Calcular_JurosCompostos_AplicaCorretamente()
         {
-            // VF = 1000 * (1 + 0.009 * 1.08)^1 = 1000 * 1.00972 = 1009.72
-            _taxaServiceMock.Setup(x => x.GetTaxaImposto(1)).Returns(0.225m);
+            // VF = 1000 * (1 + 0.009 * 1.08)^2 = 1000 * 1.00972^2 ≈ 1019.53
+            _taxaServiceMock.Setup(x => x.GetTaxaImposto(2)).Returns(0.225m);
 
-            var result = _sut.Calculate(1000m, 1);
+            var result = _sut.Calculate(1000m, 2);
 
-            result.ValorBruto.Should().BeApproximately(1009.72m, 0.01m);
+            result.ValorBruto.Should().BeApproximately(1019.53m, 0.01m);
         }
 
         [Fact]
@@ -119,25 +121,30 @@ namespace CalculadoraCdb.Tests
         }
 
         [Fact]
-        public void Calcular_ValorInvestidoNulo_LancaExcecao()
+        public void Calcular_ValorNegativo_LancaExcecao()
         {
-            // Act
-            Action act = () => _sut.Calculate(null, 12);
+            Action act = () => _sut.Calculate(-100m, 12);
 
-            // Assert
             act.Should().Throw<ArgumentException>()
-               .WithMessage("Valor investido inválido.");
+               .WithMessage("O valor investido deve ser positivo.*");
         }
 
         [Fact]
-        public void Calcular_MesesNulo_LancaExcecao()
+        public void Calcular_ValorZero_LancaExcecao()
         {
-            // Act
-            Action act = () => _sut.Calculate(1000m, null);
+            Action act = () => _sut.Calculate(0m, 12);
 
-            // Assert
             act.Should().Throw<ArgumentException>()
-               .WithMessage("Quantidade de meses inválida.");
+               .WithMessage("O valor investido deve ser positivo.*");
+        }
+
+        [Fact]
+        public void Calcular_MesesMenorOuIgual1_LancaExcecao()
+        {
+            Action act = () => _sut.Calculate(1000m, 1);
+
+            act.Should().Throw<ArgumentException>()
+               .WithMessage("O prazo deve ser maior que 1 mês.*");
         }
     }
 }

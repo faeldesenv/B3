@@ -1,48 +1,48 @@
-﻿using CalculadoraCdb.Api.Interface;
-using CalculadoraCdb.Api.Model;
-using System.Runtime.CompilerServices;
+using CalculadoraCdb.Domain.Interfaces;
+using CalculadoraCdb.Domain.Models;
 
 namespace CalculadoraCdb.Api.Service
 {
     /// <summary>
-    /// Implementação do serviço de cálculo para investimentos em CDB, responsável por calcular os valores bruto e líquido com base no valor investido e no período em meses.
-    /// Para o cálculo do CDB, deve-se utilizar a fórmula VF = VI x [1 + (CDI x TB)] aplicado por mes. 
+    /// Calcula os valores bruto e líquido de um investimento em CDB.
+    /// Fórmula: VF = VI x [1 + (CDI x TB)] aplicado por mês.
     /// </summary>
     public sealed class CalculadoraCdbService : ICalculadoraCdbService
     {
         private readonly ICalculaTaxaService _calculaTaxaService;
+        private readonly IParametrosCdb _parametrosCdb;
 
-        public CalculadoraCdbService(ICalculaTaxaService calculaTaxaService)
+        public CalculadoraCdbService(ICalculaTaxaService calculaTaxaService, IParametrosCdb parametrosCdb)
         {
             _calculaTaxaService = calculaTaxaService;
+            _parametrosCdb = parametrosCdb;
         }
 
-        public CalculaCdbResponse Calculate(decimal? valorInvestido, int? meses)
+        public CalculaCdbResponse Calculate(decimal valorInvestido, int meses)
         {
-            decimal valorReal = valorInvestido ?? throw new ArgumentException("Valor investido inválido.");
-            int mesesReal = meses ?? throw new ArgumentException("Quantidade de meses inválida.");
+            if (valorInvestido <= 0)
+                throw new ArgumentException("O valor investido deve ser positivo.", nameof(valorInvestido));
 
-            var valorBruto = CalcularValorBruto(valorReal, mesesReal);
-            var valorLiquido = CalcularValorLiquido(valorReal, valorBruto, mesesReal);
+            if (meses <= 1)
+                throw new ArgumentException("O prazo deve ser maior que 1 mês.", nameof(meses));
+
+            var valorBruto = CalcularValorBruto(valorInvestido, meses);
+            var valorLiquido = CalcularValorLiquido(valorInvestido, valorBruto, meses);
 
             return new CalculaCdbResponse
             {
                 ValorBruto = Math.Round(valorBruto, 2),
                 ValorLiquido = Math.Round(valorLiquido, 2)
-            };  
-
+            };
         }
 
-        //Para medida do Exercício considerar os valores TB = 108% e CDI = 0,9%.
-        private static decimal CalcularValorBruto(decimal valorInvestido, int meses)
+        private decimal CalcularValorBruto(decimal valorInvestido, int meses)
         {
             var valor = valorInvestido;
-
-            for(var mes = 0; mes < meses; mes++)
+            for (var mes = 0; mes < meses; mes++)
             {
-                valor *= 1 + (0.009m * 1.08m);
+                valor *= 1 + (_parametrosCdb.Cdi * _parametrosCdb.Tb);
             }
-
             return valor;
         }
 
@@ -51,7 +51,6 @@ namespace CalculadoraCdb.Api.Service
             var rendimento = valorBruto - valorInvestido;
             var taxa = _calculaTaxaService.GetTaxaImposto(meses);
             var imposto = rendimento * taxa;
-
             return valorBruto - imposto;
         }
     }

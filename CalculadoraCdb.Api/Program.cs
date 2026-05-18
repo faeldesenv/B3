@@ -1,9 +1,7 @@
-using CalculadoraCdb.Api.Interface;
 using CalculadoraCdb.Api.Service;
+using CalculadoraCdb.Domain.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
-
-// Add services to the container.
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -13,7 +11,7 @@ builder.Services.AddSwaggerGen(options =>
     {
         Title = "Api calculo CDB",
         Version = "v1",
-        Description = "API para cálculo de rendimento de investimentos em CDB."
+        Description = "API para cÃ¡lculo de rendimento de investimentos em CDB."
     });
 
     var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
@@ -22,6 +20,8 @@ builder.Services.AddSwaggerGen(options =>
         options.IncludeXmlComments(xmlPath);
 });
 
+builder.Services.AddScoped<IFaixaImpostoProvider, FaixaImpostoProvider>();
+builder.Services.AddScoped<IParametrosCdb, ParametrosCdb>();
 builder.Services.AddScoped<ICalculadoraCdbService, CalculadoraCdbService>();
 builder.Services.AddScoped<ICalculaTaxaService, CalculaTaxaService>();
 
@@ -44,8 +44,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseStaticFiles(); // Adicione esta linha se não tiver
-app.UseRouting();     // Adicione esta linha se não tiver
+app.UseStaticFiles();
+app.UseRouting();
 app.UseCors("AllowAngular");
 app.UseAuthorization();
 

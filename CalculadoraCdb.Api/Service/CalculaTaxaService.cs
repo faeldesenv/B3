@@ -1,19 +1,27 @@
-﻿using CalculadoraCdb.Api.Interface;
-using System.Diagnostics.Metrics;
+using CalculadoraCdb.Domain.Interfaces;
+using CalculadoraCdb.Domain.Models;
 
 namespace CalculadoraCdb.Api.Service
 {
     public class CalculaTaxaService : ICalculaTaxaService
-    {       
+    {
+        private readonly List<FaixaImposto> _faixas;
+
+        public CalculaTaxaService(IFaixaImpostoProvider faixaImpostoProvider)
+        {
+            var faixas = faixaImpostoProvider.GetFaixas();
+
+            if (faixas.Count == 0)
+                throw new InvalidOperationException("A tabela de imposto não pode estar vazia.");
+
+            _faixas = [.. faixas.OrderBy(f => f.LimiteMaximoMeses ?? int.MaxValue)];
+        }
+
         public decimal GetTaxaImposto(int meses)
         {
-            return meses switch
-            {
-                <= 6 => 0.225m,
-                <= 12 => 0.20m,
-                <= 24 => 0.175m,
-                _ => 0.15m
-            };
+            return _faixas
+                .FirstOrDefault(f => f.LimiteMaximoMeses == null || meses <= f.LimiteMaximoMeses)
+                ?.Taxa ?? _faixas[^1].Taxa;
         }
     }
 }

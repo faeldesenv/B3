@@ -1,5 +1,5 @@
-﻿using CalculadoraCdb.Api.Interface;
 using CalculadoraCdb.Api.Model;
+using CalculadoraCdb.Domain.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CalculadoraCdb.Api.Controllers
@@ -14,7 +14,7 @@ namespace CalculadoraCdb.Api.Controllers
         /// <summary>
         /// Initializes a new instance of <see cref="CdbController"/>.
         /// </summary>
-        /// <param name="calculatorService">The CDB calculation service.</param>
+        /// <param name="calculadoraCdbService">The CDB calculation service.</param>
         public CdbController(ICalculadoraCdbService calculadoraCdbService)
         {
             _calculadoraCdbService = calculadoraCdbService;
@@ -30,20 +30,19 @@ namespace CalculadoraCdb.Api.Controllers
         [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
         public IActionResult Calculate([FromBody] CalculaCdbRequest request)
         {
-            if (request.ValorInvestido <= 0)
+            try
             {
-                ModelState.AddModelError(nameof(request.ValorInvestido), "O valor investido deve ser positivo.");
+                var result = _calculadoraCdbService.Calculate(
+                    request.ValorInvestido!.Value,
+                    request.Meses!.Value);
+
+                return Ok(result);
+            }
+            catch (ArgumentException ex)
+            {
+                ModelState.AddModelError(ex.ParamName ?? string.Empty, ex.Message);
                 return ValidationProblem();
             }
-
-            if (request.Meses <= 1)
-            {
-                ModelState.AddModelError(nameof(request.Meses), "O prazo deve ser maior que 1 mês.");
-                return ValidationProblem();
-            }
-
-            var result = _calculadoraCdbService.Calculate(request.ValorInvestido, request.Meses);
-            return Ok(result);
         }
     }
 }

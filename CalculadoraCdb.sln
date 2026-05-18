@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalculadoraCdb.Api", "Calcu
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalculadoraCdb.Tests", "CalculadoraCdb.Tests\CalculadoraCdb.Tests.csproj", "{F9D3A933-F613-4047-9795-A44C6667E637}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalculadoraCdb.Domain", "CalculadoraCdb.Domain\CalculadoraCdb.Domain.csproj", "{3A5C8E7B-1D4F-4A2E-9C6B-8D2F5A3E7C1B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{F9D3A933-F613-4047-9795-A44C6667E637}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F9D3A933-F613-4047-9795-A44C6667E637}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F9D3A933-F613-4047-9795-A44C6667E637}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3A5C8E7B-1D4F-4A2E-9C6B-8D2F5A3E7C1B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3A5C8E7B-1D4F-4A2E-9C6B-8D2F5A3E7C1B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3A5C8E7B-1D4F-4A2E-9C6B-8D2F5A3E7C1B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3A5C8E7B-1D4F-4A2E-9C6B-8D2F5A3E7C1B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

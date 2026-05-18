@@ -1,15 +1,11 @@
-﻿using CalculadoraCdb.Api.Controllers;
-using CalculadoraCdb.Api.Interface;
+using CalculadoraCdb.Api.Controllers;
 using CalculadoraCdb.Api.Model;
-using Moq;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Xunit;
+using CalculadoraCdb.Domain.Interfaces;
+using CalculadoraCdb.Domain.Models;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
+using Moq;
+using Xunit;
 
 namespace CalculadoraCdb.Tests
 {
@@ -37,46 +33,6 @@ namespace CalculadoraCdb.Tests
         }
 
         [Fact]
-        public void Calcular_ValorZero_RetornaBadRequest()
-        {
-            var request = new CalculaCdbRequest { ValorInvestido = 0m, Meses = 12 };
-
-            var actionResult = _sut.Calculate(request);
-
-            actionResult.Should().BeOfType<ObjectResult>();
-        }
-
-        [Fact]
-        public void Calcular_ValorNegativo_RetornaBadRequest()
-        {
-            var request = new CalculaCdbRequest { ValorInvestido = -500m, Meses = 12 };
-
-            var actionResult = _sut.Calculate(request);
-
-            actionResult.Should().BeOfType<ObjectResult>();
-        }
-
-        [Fact]
-        public void Calcular_UmMes_RetornaBadRequest()
-        {
-            var request = new CalculaCdbRequest { ValorInvestido = 1000m, Meses = 1 };
-
-            var actionResult = _sut.Calculate(request);
-
-            actionResult.Should().BeOfType<ObjectResult>();
-        }
-
-        [Fact]
-        public void Calcular_MesesInvalidos_RetornaBadRequest()
-        {
-            var request = new CalculaCdbRequest { ValorInvestido = 1000m, Meses = 0 };
-
-            var actionResult = _sut.Calculate(request);
-
-            actionResult.Should().BeOfType<ObjectResult>();
-        }
-
-        [Fact]
         public void Calcular_RequestValido_ChamaServico()
         {
             var request = new CalculaCdbRequest { ValorInvestido = 2000m, Meses = 6 };
@@ -89,21 +45,11 @@ namespace CalculadoraCdb.Tests
         }
 
         [Fact]
-        public void Calcular_RequestInvalido_NaoChamaService()
-        {
-            var request = new CalculaCdbRequest { ValorInvestido = -100m, Meses = 12 };
-
-            _sut.Calculate(request);
-
-            _calculadoraCdbServiceMock.Verify(x => x.Calculate(It.IsAny<decimal>(), It.IsAny<int>()), Times.Never);
-        }
-
-        [Fact]
         public void Calcular_DoisMeses_RetornaOk()
         {
             var request = new CalculaCdbRequest { ValorInvestido = 1000m, Meses = 2 };
             _calculadoraCdbServiceMock.Setup(x => x.Calculate(1000m, 2))
-                .Returns(new CalculaCdbResponse { ValorBruto = 1019.46m, ValorLiquido= 1014.84m });
+                .Returns(new CalculaCdbResponse { ValorBruto = 1019.46m, ValorLiquido = 1014.84m });
 
             var actionResult = _sut.Calculate(request);
 
@@ -111,9 +57,25 @@ namespace CalculadoraCdb.Tests
         }
 
         [Fact]
-        public void Calcular_MesesNegativos_RetornaBadRequest()
+        public void Calcular_ServicoLancaExcecao_RetornaBadRequest()
         {
-            var request = new CalculaCdbRequest { ValorInvestido = 1000m, Meses = -5 };
+            var request = new CalculaCdbRequest { ValorInvestido = -100m, Meses = 12 };
+            _calculadoraCdbServiceMock
+                .Setup(x => x.Calculate(It.IsAny<decimal>(), It.IsAny<int>()))
+                .Throws(new ArgumentException("O valor investido deve ser positivo.", "valorInvestido"));
+
+            var actionResult = _sut.Calculate(request);
+
+            actionResult.Should().BeOfType<ObjectResult>();
+        }
+
+        [Fact]
+        public void Calcular_ServicoLancaExcecaoDeMeses_RetornaBadRequest()
+        {
+            var request = new CalculaCdbRequest { ValorInvestido = 1000m, Meses = 1 };
+            _calculadoraCdbServiceMock
+                .Setup(x => x.Calculate(It.IsAny<decimal>(), It.IsAny<int>()))
+                .Throws(new ArgumentException("O prazo deve ser maior que 1 mês.", "meses"));
 
             var actionResult = _sut.Calculate(request);
 
